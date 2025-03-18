@@ -1,18 +1,8 @@
 import streamlit as st
-import random
+import requests
 import plotly.graph_objects as go
-from typing import List, Dict, Tuple, Union
 
-COMPANIES = [
-    "Tesla", "Apple", "Microsoft", "Google",
-    "Amazon", "Meta", "Netflix", "NVIDIA",
-    "Samsung", "Sony", "Toyota", "Intel"
-]
-
-TOPICS = ["Finance", "Technology", "Regulation", "Innovation"]
-SAMPLE_ARTICLE_COUNT = 10
-
-# Set page config first (PEP8: imports first, then code)
+# Set page config first
 st.set_page_config(
     page_title="News Analyzer",
     page_icon="📈",
@@ -22,23 +12,11 @@ st.set_page_config(
 # Initialize session state
 if "selected_company" not in st.session_state:
     st.session_state.selected_company = None
-if "articles" not in st.session_state:
-    st.session_state.articles = []
-if "selected_sentiment" not in st.session_state:
-    st.session_state.selected_sentiment = None
+if "analysis_result" not in st.session_state:
+    st.session_state.analysis_result = {}
 
-
-def create_gauge(value: float, title: str, color: str) -> go.Figure:
-    """Create a Plotly gauge chart with consistent styling.
-    
-    Args:
-        value (float): Percentage value to display
-        title (str): Chart title
-        color (str): Color code for the gauge
-        
-    Returns:
-        plotly.graph_objs._figure.Figure: Configured gauge figure
-    """
+def create_gauge(value, title, color):
+    """Create a Plotly gauge chart with consistent styling"""
     return go.Figure(
         go.Indicator(
             mode="gauge+number",
@@ -47,28 +25,18 @@ def create_gauge(value: float, title: str, color: str) -> go.Figure:
             domain={"x": [0, 1], "y": [0, 1]},
             title={"text": title},
             gauge={
-                "axis": {
-                    "range": [0, 100],
-                    "tickwidth": 1,
-                    "tickcolor": "White",
-
-                },
+                "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "darkgray"},
                 "bar": {"color": color},
                 "bgcolor": "white",
-                "borderwidth": 1,
+                "borderwidth": 2,
                 "bordercolor": "gray",
-                "steps": [{"range": [0, 100], "color": "#0E1117"}]
+                "steps": [{"range": [0, 100], "color": "lightgray"}]
             }
         )
-    ).update_layout(
-        margin=dict(t=30, b=10),
-        height=250
-    )
-
+    ).update_layout(margin=dict(t=30, b=10), height=250)
 
 def main():
-    """Main application function handling UI layout and logic."""
-    st.title("Company News Sentiment Analyzer ")
+    st.title("📈 Company News Sentiment Analyzer")
     
     left_col, right_col = st.columns([0.35, 0.65])
     
@@ -78,10 +46,8 @@ def main():
     with right_col:
         render_right_column()
 
-
 def render_left_column():
-    """Handles left column components."""
-    st.subheader("Select Company 🔍")
+    st.subheader("🔍 Select Company")
     
     companies = [
         "Tesla", "Apple", "Microsoft", "Google",
@@ -96,73 +62,96 @@ def render_left_column():
         placeholder="Search companies..."
     )
     
-    if st.button("Analyze News", type="primary"):
+    if st.button("Analyze News 📊", type="primary"):
         handle_company_selection(selected_company)
     
     st.markdown("---")
     st.subheader("🎧 Hindi Summary")
-    st.warning("Text-to-Speech feature coming soon!")
-
+    
+    # Audio player integration
+    if st.session_state.analysis_result.get("Audio"):
+        st.audio(st.session_state.analysis_result["Audio"], format="audio/wav")
+    else:
+        st.warning("No audio available yet")
 
 def handle_company_selection(company):
-    """Process company selection and generate sample articles."""
-    if company:
-        st.session_state.selected_company = company
-        generate_sample_articles()
-    else:
+    if not company:
         st.warning("Please select a company first!")
-
-
-def generate_sample_articles():
-    """Generate dummy articles for demonstration purposes."""
-    sentiments = ["Positive", "Negative", "Neutral"]
-    company = st.session_state.selected_company
+        return
     
-    st.session_state.articles = [
-        {
-            "title": f"{company} News {i+1}",
-            "summary": f"Sample summary {i+1} about {company}",
-            "sentiment": random.choice(sentiments),
-            "topics": random.sample(
-                ["Finance", "Technology", "Regulation", "Innovation"], 2
+    with st.spinner("Fetching and analyzing news articles..."):
+        try:
+            response = requests.post(
+                "http://localhost:8000/analyze",
+                json={"company": company}
             )
-        } 
-        for i in range(10)
-    ]
-
+            response.raise_for_status()
+            result = response.json()
+            
+            # Update session state
+            st.session_state.selected_company = company
+            st.session_state.analysis_result = result
+            
+        except requests.exceptions.RequestException as e:
+            st.error(f"Error: {str(e)}")
 
 def render_right_column():
-    """Handles right column components."""
     if not st.session_state.selected_company:
         st.info("👈 Select a company and click 'Analyze News' to begin")
         return
     
-    st.subheader(f" Analysis Report: {st.session_state.selected_company}")
+    result = st.session_state.analysis_result
+    articles = result.get("Articles", [])
     
-    pos_pct, neg_pct, neu_pct, pos, neg, neu = calculate_sentiment_stats()
+    st.subheader(f"📈 Analysis Report: {st.session_state.selected_company}")
+    
+    # Sentiment gauges
+    pos_pct, neg_pct, neu_pct = calculate_sentiment_stats(articles)
     render_gauges(pos_pct, neg_pct, neu_pct)
-    render_filter_controls(pos, neg, neu)
-    render_article_list()
-
-
-def calculate_sentiment_stats() -> Tuple[float, float, float, int, int, int]:
-    """Calculate sentiment distribution percentages and counts."""
-    sentiments = [a["sentiment"] for a in st.session_state.articles]
-    total = len(sentiments)
     
+    # Filter controls
+    render_filter_controls(articles)
+    
+    # Article list
+    render_article_list(articles)
+    
+    # Comparative analysis
+    if "Comparative Sentiment Score" in result:
+        st.subheader("📊 Comparative Analysis")
+        with st.expander("Show Detailed Analysis"):
+            comparative = result["Comparative Sentiment Score"]
+            
+            # Sentiment distribution
+            st.markdown("#### Sentiment Distribution")
+            st.write(comparative.get("Sentiment Distribution", {}))
+            
+            # Coverage differences
+            st.markdown("#### Coverage Differences")
+            for item in comparative.get("Coverage Differences", []):
+                st.markdown(f"- **Comparison**: {item['Comparison']}")
+                st.markdown(f"  **Impact**: {item['Impact']}")
+            
+            # Topic overlap
+            st.markdown("#### Topic Overlap")
+            st.write(comparative.get("Topic Overlap", {}))
+
+def calculate_sentiment_stats(articles):
+    total = len(articles)
+    if total == 0:
+        return 0, 0, 0
+    
+    sentiments = [a["Sentiment"] for a in articles]
     pos = sentiments.count("Positive")
     neg = sentiments.count("Negative")
     neu = sentiments.count("Neutral")
     
-    pos_pct = (pos / total * 100) if total > 0 else 0
-    neg_pct = (neg / total * 100) if total > 0 else 0
-    neu_pct = (neu / total * 100) if total > 0 else 0
-    
-    return pos_pct, neg_pct, neu_pct, pos, neg, neu
-
+    return (
+        round((pos / total) * 100, 1),
+        round((neg / total) * 100, 1),
+        round((neu / total) * 100, 1)
+    )
 
 def render_gauges(pos_pct, neg_pct, neu_pct):
-    """Render sentiment gauge charts."""
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -183,61 +172,47 @@ def render_gauges(pos_pct, neg_pct, neu_pct):
             use_container_width=True
         )
 
-
-def render_filter_controls(pos, neg, neu):
-    """Render sentiment filter controls."""
+def render_filter_controls(articles):
+    sentiments = [a["Sentiment"] for a in articles]
+    pos = sentiments.count("Positive")
+    neg = sentiments.count("Negative")
+    neu = sentiments.count("Neutral")
+    
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button(f"🟢 Show Positive ({pos})", use_container_width=True):
+        if st.button(f"✅ Show Positive ({pos})", use_container_width=True):
             st.session_state.selected_sentiment = "Positive"
     
     with col2:
-        if st.button(f"🔴 Show Negative ({neg})", use_container_width=True):
+        if st.button(f"❌ Show Negative ({neg})", use_container_width=True):
             st.session_state.selected_sentiment = "Negative"
     
     with col3:
-        if st.button(f"🔵 Show Neutral ({neu})", use_container_width=True):
+        if st.button(f"⚪ Show Neutral ({neu})", use_container_width=True):
             st.session_state.selected_sentiment = "Neutral"
     
+    if st.session_state.get("selected_sentiment"):
+        if st.button("Clear Filters 🧹", use_container_width=True):
+            st.session_state.selected_sentiment = None
 
-def render_article_list():
-    """Render filtered article list."""
+def render_article_list(articles):
     st.markdown("---")
     st.subheader("📰 Latest News Articles")
     
-    filtered_articles = get_filtered_articles()
+    filtered = [a for a in articles if a["Sentiment"] == st.session_state.get("selected_sentiment")] \
+        if st.session_state.get("selected_sentiment") else articles
     
-    for article in filtered_articles:
-        with st.expander(f"{article['title']} - {article['sentiment']}"):
-            render_article_details(article)
-
-
-def get_filtered_articles() -> List[Dict]:
-    """Get articles based on current filter selection."""
-    try:
-        if st.session_state.selected_sentiment:
-            return [
-                a for a in st.session_state.articles 
-                if a.get("sentiment") == st.session_state.selected_sentiment
-            ]
-        return st.session_state.articles
-    except Exception as e:
-        st.error(f"Error filtering articles: {str(e)}")
-        return []
-
-
-def render_article_details(article):
-    """Render article details in expander."""
-    col1, col2 = st.columns([0.7, 0.3])
-    
-    with col1:
-        st.write(article["summary"])
-    
-    with col2:
-        st.caption(f"**Topics:** {', '.join(article['topics'])}")
-        st.caption(f"**Sentiment:** {article['sentiment']}")
-
+    for article in filtered:
+        with st.expander(f"{article['Title']} - {article['Sentiment']}"):
+            col1, col2 = st.columns([0.7, 0.3])
+            
+            with col1:
+                st.write(article["Summary"])
+            
+            with col2:
+                st.caption(f"**Topics:** {', '.join(article['Topics'])}")
+                st.caption(f"**Sentiment:** {article['Sentiment']}")
 
 if __name__ == "__main__":
     main()
