@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 # Set page config first
 st.set_page_config(
     page_title="News Analyzer",
-    page_icon="📈",
+    page_icon="🎓",
     layout="wide"
 )
 
@@ -64,12 +64,26 @@ def render_left_column():
     companies = [
         "Tesla", "Apple", "Microsoft", "Google",
         "Amazon", "Meta", "Netflix", "NVIDIA",
-        "Samsung", "Sony", "Toyota", "Intel"
+        "Samsung", "Sony", "Toyota", "Intel",
+        "IBM", "Facebook", "Twitter", "Alphabet",
+        "Ford", "General Motors", "IBM","Boeing", 
+        "SpaceX","Alibaba","Tencent","Baidu","JD.com",
+        "Huawei","Xiaomi","NIO","BYD","Volkswagen",
+        "BMW","Mercedes-Benz","Audi","Porsche","Ford",
+        "General Motors","Nissan","Honda","Hyundai",
+        "Kia","Renault","Peugeot","Fiat Chrysler",
+        "Ferrari","Lamborghini","Maserati","McLaren",
+        "Rolls-Royce","Bentley","Bugatti","Jaguar",
+        "Land Rover","Mini","Lotus","Aston Martin",
+        "tata","Mahindra","Maruti Suzuki","Hero MotoCorp",
+        "Bajaj Auto","TVS Motor","Royal Enfield","Yamaha",
+        "Suzuki","Kawasaki","Harley-Davidson","Ducati",
+        "KTM","BMW Motorrad","Triumph","Aprilia",
     ]
     selected_company = st.selectbox("Type or select company:", options=companies, index=None, placeholder="Search companies...", key="company_select")
     custom_company = st.text_input("Or enter a different company:", placeholder="Type custom company name...", key="custom_company")
     company_name = custom_company if custom_company else selected_company
-    if st.button("Analyze News 📊", type="primary"):
+    if st.button("Analyze News 🧠", type="primary"):
         handle_company_selection(company_name)
     st.markdown("---")
     st.subheader("🎧 Hindi Summary")
@@ -93,6 +107,23 @@ def handle_company_selection(company):
             st.session_state.selected_company = company
         except requests.exceptions.RequestException as e:
             st.error(f"Error connecting to API: {str(e)}")
+            
+def calculate_sentiment_stats(articles):
+    total = len(articles)
+    if total == 0:
+        return 0, 0, 0
+
+    sentiments = [a.get("Sentiment", "Neutral") for a in articles]
+    pos = sentiments.count("Positive")
+    neg = sentiments.count("Negative")
+    neu = sentiments.count("Neutral")
+
+    return (
+        round((pos / total) * 100, 1),
+        round((neg / total) * 100, 1),
+        round((neu / total) * 100, 1)
+    )
+
 
 def render_right_column():
     if not st.session_state.selected_company:
@@ -100,12 +131,13 @@ def render_right_column():
         return
     result = st.session_state.analysis_result
     articles = result.get("Articles", [])
-    st.subheader(f"📈 Analysis Report: {st.session_state.selected_company}")
+    st.subheader(f" Analysis Report: {st.session_state.selected_company}")
     pos_pct, neg_pct, neu_pct = calculate_sentiment_stats(articles)
     render_gauges(pos_pct, neg_pct, neu_pct)
     render_filter_controls(articles)
-    render_article_list(articles)
-    st.subheader("📊 Comparative Analysis")
+    filtered_articles = filter_articles_by_sentiment(articles, st.session_state.selected_sentiment)
+    render_article_list(filtered_articles)
+    st.subheader("Comparative Analysis")
     with st.expander("Show Detailed Analysis"):
         st.markdown("#### Sentiment Distribution")
         st.write(result.get("Comparative Sentiment Score", {}).get("Sentiment Distribution", {}))
@@ -126,17 +158,23 @@ def render_filter_controls(articles):
     neu = sentiments.count("Neutral")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button(f"✅ Show Positive ({pos})", use_container_width=True):
+        if st.button(f"🟢 Positive ({pos})", use_container_width=True):
             st.session_state.selected_sentiment = "Positive"
     with col2:
-        if st.button(f"❌ Show Negative ({neg})", use_container_width=True):
+        if st.button(f"🔴 Show Negative ({neg})", use_container_width=True):
             st.session_state.selected_sentiment = "Negative"
     with col3:
-        if st.button(f"⚪ Show Neutral ({neu})", use_container_width=True):
+        if st.button(f"🔵 Show Neutral ({neu})", use_container_width=True):
             st.session_state.selected_sentiment = "Neutral"
     if st.session_state.get("selected_sentiment"):
         if st.button("Clear Filters 🧹", use_container_width=True):
             st.session_state.selected_sentiment = None
+
+def filter_articles_by_sentiment(articles, sentiment):
+    """Filter articles based on the selected sentiment"""
+    if not sentiment:
+        return articles
+    return [article for article in articles if article.get("Sentiment") == sentiment]
 
 def render_gauges(pos_pct, neg_pct, neu_pct):
     col1, col2, col3 = st.columns(3)
@@ -148,7 +186,7 @@ def render_gauges(pos_pct, neg_pct, neu_pct):
         st.plotly_chart(create_gauge(neu_pct, "Neutral Sentiment", "#2196F3"), use_container_width=True)
 
 def main():
-    st.title("📈 Company News Sentiment Analyzer")
+    st.title("Company News Sentiment Analyzer")
     left_col, right_col = st.columns([0.35, 0.65])
     with left_col:
         render_left_column()
