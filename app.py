@@ -107,7 +107,7 @@ def handle_company_selection(company):
             st.session_state.selected_company = company
         except requests.exceptions.RequestException as e:
             st.error(f"Error connecting to API: {str(e)}")
-            
+
 def calculate_sentiment_stats(articles):
     total = len(articles)
     if total == 0:
@@ -123,7 +123,6 @@ def calculate_sentiment_stats(articles):
         round((neg / total) * 100, 1),
         round((neu / total) * 100, 1)
     )
-
 
 def render_right_column():
     if not st.session_state.selected_company:
