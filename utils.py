@@ -148,12 +148,3 @@ class NewsAnalyzer:
         tts.save(filename)
         return filename
 
-# # Testing the class
-# def test_news_analyzer():
-#     company = "Tesla"
-#     analyzer = NewsAnalyzer(company)
-#     report = analyzer.scrape_process()
-#     print("\nFinal Report:")
-#     print(report)
-
-# test_news_analyzer()
