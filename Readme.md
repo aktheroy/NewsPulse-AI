@@ -1,6 +1,5 @@
 Here's a professional README.md file for your project:
 
-```markdown
 # News Summarization and Text-to-Speech Application
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
@@ -30,7 +29,6 @@ pip install -r backend/requirements.txt
 
 # Install frontend dependencies
 pip install -r frontend/requirements.txt
-```
 
 ## Requirements
 
