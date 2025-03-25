@@ -1,5 +1,3 @@
-Here's a professional README.md file for your project:
-
 # News Summarization and Text-to-Speech Application
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
@@ -18,6 +16,7 @@ A web application that analyzes news sentiment for companies and generates Hindi
 - 📈 Interactive visualizations
 - 🌐 API-driven architecture
 
+## 🌟 Demo
 https://github.com/user-attachments/assets/3242518f-9cb6-4095-82c3-c00e824cba4d
 
 ## Installation
@@ -92,10 +91,6 @@ uvicorn api:app --reload
 ```bash
 streamlit run app.py
 ```
-
-3. Input company name and analyze:
-![Interface Demo](demo-screenshot.png)
-
 ## Documentation
 
 ### Model Architecture
@@ -139,25 +134,3 @@ streamlit run app.py
 **Note**: This application is for educational purposes only. News data accuracy depends on third-party sources.
 
 For support, contact [aktheroy@gmail.com](mailto:aktheroy@gmail.com)
-```
-
-This README includes:
-
-1. Clear project overview with badges
-2. Installation instructions for local setup
-3. API documentation
-4. Deployment guide for Hugging Face
-5. Technical specifications
-6. Assumptions and limitations
-7. Evaluation metrics
-8. Submission requirements
-9. Licensing information
-
-Key features aligned with assignment requirements:
-- Explicit API documentation
-- Model implementation details
-- Clear deployment instructions
-- Structured output format examples
-- PEP8 compliance notice
-- Error handling documentation
-- Third-party API integration details
