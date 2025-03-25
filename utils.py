@@ -1,6 +1,6 @@
-import requests
-import re
-import time
+import requests, re
+import time, base64
+from io import BytesIO
 from bs4 import BeautifulSoup
 from newspaper import Article, Config
 from transformers import BertTokenizer, BertForSequenceClassification, pipeline
@@ -8,13 +8,14 @@ from keybert import KeyBERT
 from gtts import gTTS
 from deep_translator import GoogleTranslator
 from collections import defaultdict
-import os
+
 
 class NewsAnalyzer:
     def __init__(self, company_name: str):
         self.company_name = company_name
         self.articles = []
-        self.sentiment_distribution = {"Positive": 0, "Negative": 0, "Neutral": 0}
+        self.sentiment_distribution = {
+            "Positive": 0, "Negative": 0, "Neutral": 0}
 
         # Newspaper3k configuration
         self.config = Config()
@@ -24,24 +25,29 @@ class NewsAnalyzer:
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/91.0.4472.124 Safari/537.36"
         )
-        
+
         # Load FinBERT Model
         self.tokenizer = BertTokenizer.from_pretrained('ProsusAI/finbert')
-        self.model = BertForSequenceClassification.from_pretrained('ProsusAI/finbert')
-        self.nlp = pipeline("sentiment-analysis", model=self.model, tokenizer=self.tokenizer)
-        
+        self.model = BertForSequenceClassification.from_pretrained(
+            'ProsusAI/finbert')
+        self.nlp = pipeline("sentiment-analysis",
+                            model=self.model, tokenizer=self.tokenizer)
+
         # Load KeyBERT Model
         self.kw_model = KeyBERT()
-    
+
     def scrape_process(self):
         """Main method to perform complete news scraping and analysis"""
         urls = self._search_news()
         self._scrape_articles(urls)
         self._process_articles()
         analysis = self._generate_comparative_analysis()
-        analysis["Audio"] = self._generate_audio(analysis["Final Sentiment Analysis"])
+        # Generate audio bytes directly
+        audio_bytes = self._generate_audio(analysis["Final Sentiment Analysis"])
+        analysis["Audio"] = audio_bytes  # Store bytes instead of filename
+        
         return analysis
-    
+
     def _search_news(self):
         base_url = "https://duckduckgo.com/html/"
         params = {"q": f"{self.company_name} news", "kl": "us-en"}
@@ -94,7 +100,8 @@ class NewsAnalyzer:
 
     def _extract_topics(self, text):
         """Extracts key topics from text using KeyBERT"""
-        keywords = self.kw_model.extract_keywords(text, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=5)
+        keywords = self.kw_model.extract_keywords(
+            text, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=5)
         return [kw[0] for kw in keywords]
 
     def _process_articles(self):
@@ -109,7 +116,7 @@ class NewsAnalyzer:
         result = self.nlp(text)[0]
         label = result['label'].capitalize()
         return label if label in self.sentiment_distribution else "Neutral"
-    
+
     def _generate_comparative_analysis(self):
         """Generates comparative analysis of the articles"""
         comparisons = []
@@ -139,12 +146,19 @@ class NewsAnalyzer:
             },
             "Final Sentiment Analysis": f"{self.company_name}'s latest news coverage is mostly {max(self.sentiment_distribution, key=self.sentiment_distribution.get).lower()}."
         }
-
+    
     def _generate_audio(self, text):
-        """Converts text to Hindi speech using gTTS"""
-        hindi_text = GoogleTranslator(source='auto', target='hi').translate(text)
-        tts = gTTS(text=hindi_text, lang='hi')
-        filename = f"{self.company_name}_summary.mp3"
-        tts.save(filename)
-        return filename
-
+        """Converts text to Hindi speech using in-memory buffer"""
+        try:
+            hindi_text = GoogleTranslator(source='auto', target='hi').translate(text)
+            audio_buffer = BytesIO()
+            tts = gTTS(text=hindi_text, lang='hi')
+            tts.write_to_fp(audio_buffer)
+            audio_buffer.seek(0)
+            
+            # Convert to base64 for JSON serialization
+            return base64.b64encode(audio_buffer.read()).decode('utf-8')
+        
+        except Exception as e:
+            print(f"Audio generation failed: {str(e)}")
+            return None

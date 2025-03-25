@@ -5,8 +5,10 @@ import uvicorn
 
 app = FastAPI()
 
+
 class RequestModel(BaseModel):
     company_name: str
+
 
 @app.post("/analyze")
 async def analyze_news(request: RequestModel):
