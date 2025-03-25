@@ -21,7 +21,7 @@ A web application that analyzes news sentiment for companies and generates Hindi
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/news-analyzer.git
+git clone https://github.com/aktheroy/news-analyzer.git
 cd news-analyzer
 
 # Install backend dependencies
@@ -125,9 +125,8 @@ streamlit run app.py
 
 ## Submission
 
-- GitHub Repository: [news-analyzer](https://github.com/yourusername/news-analyzer)
-- HuggingFace Space: [live-demo](https://huggingface.co/spaces/yourusername/news-analyzer)
-- Video Demo: [walkthrough](https://youtube.com/your-demo)
+- GitHub Repository: [news-analyzer](https://github.com/aktheroy/news-analyzer)
+- HuggingFace Space: [live-demo](https://huggingface.co/spaces/aktheroy/news-analyzer)
 
 ## License
 
