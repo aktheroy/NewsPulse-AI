@@ -18,6 +18,8 @@ A web application that analyzes news sentiment for companies and generates Hindi
 - 📈 Interactive visualizations
 - 🌐 API-driven architecture
 
+https://github.com/user-attachments/assets/3242518f-9cb6-4095-82c3-c00e824cba4d
+
 ## Installation
 
 ```bash
