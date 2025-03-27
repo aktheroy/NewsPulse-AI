@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 # Set page config
 st.set_page_config(
-    page_title="News Analyzer",
+    page_title="NewsPulse AI",
     page_icon="🎓",
     layout="wide"
 )
@@ -98,40 +98,58 @@ def handle_company_selection(company):
             st.error(f"Connection error: {str(e)}")
 
 def render_left_column():
-    """Left sidebar content"""
+    """Simplified company selection with text input only"""
     st.subheader("🔍 Select Company")
     companies = [
         "Tesla", "Apple", "Microsoft", "Google", "Amazon", "Meta",
-        "Netflix", "NVIDIA", "Samsung", "Sony", "Toyota", "Intel"
+        "Netflix", "NVIDIA", "Samsung", "Sony", "Toyota", "Intel",
+        "IBM", "Oracle", "Adobe", "Cisco", "HP", "Dell",
+        "Volkswagen", "Ford", "Honda", "BMW", "Mercedes-Benz", "General Motors",
+        "SpaceX", "Boeing", "Airbus", "GE", "Siemens", "Alibaba",
+        "Tata", "ByteDance", "PayPal", "Visa", "Mastercard", "JPMorgan Chase",
+        "Goldman Sachs", "Morgan Stanley", "Disney", "Warner Bros", "Universal", "Spotify",
+        "Twitter", "LinkedIn", "Uber", "Lyft", "Airbnb", "Starbucks",
+        "McDonald's", "Coca-Cola", "Pepsi", "Nike", "Adidas", "Walmart",
+        "Target", "Costco", "FedEx", "UPS", "Verizon", "AT&T"
     ]
+    companies_lower = [c.lower() for c in companies]
 
-    selected = st.selectbox(
-        "Type or select company:",
-        options=companies,
-        index=None,
-        placeholder="Search companies...",
-        key="company_select"
-    )
-    custom_company = st.text_input(
-        "Or enter a different company:",
-        placeholder="Type custom company name...",
-        key="custom_company"
-    )
-    company = custom_company or selected
+    # Single text input for company selection
+    user_input = st.text_input(
+        "Enter company name:",
+        placeholder="Type company name...",
+        key="company_input"
+    ).strip()
 
+    # Process input
+    selected_company = None
+    if user_input:
+        # Check for case-insensitive match
+        if user_input.lower() in companies_lower:
+            idx = companies_lower.index(user_input.lower())
+            selected_company = companies[idx]
+        else:
+            selected_company = user_input
+
+    # Analyze button with validation
     if st.button("Analyze News 🧠", type="primary"):
-        handle_company_selection(company)
+        if not user_input:
+            st.warning("Please enter a company name")
+        else:
+            handle_company_selection(selected_company)
 
+    # Audio player
     st.markdown("---")
-    st.subheader("🎧 Hindi Summary")
+    st.subheader("🎧 Audio Summary")
     if st.session_state.audio_bytes:
         st.audio(st.session_state.audio_bytes, format="audio/mpeg")
     else:
         st.warning("No audio available yet")
 
+    # Comparative analysis section
     if st.session_state.analysis_result:
         st.markdown("---")
-        st.subheader("Comparative Analysis")
+        st.subheader("📊 Comparative Analysis")
         with st.expander("Show Detailed Analysis"):
             result = st.session_state.analysis_result
             st.markdown("#### Sentiment Distribution")
@@ -145,9 +163,6 @@ def render_left_column():
 
 def render_right_column():
     """Main content area"""
-    if not st.session_state.selected_company:
-        st.info("👈 Select a company and click 'Analyze News' to begin")
-        return
 
     result = st.session_state.analysis_result
     articles = result.get("Articles", [])

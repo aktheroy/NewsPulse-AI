@@ -116,9 +116,9 @@ class NewsAnalyzer:
         result = self.nlp(text)[0]
         label = result['label'].capitalize()
         return label if label in self.sentiment_distribution else "Neutral"
-
+    
     def _generate_comparative_analysis(self):
-        """Generates comparative analysis of the articles"""
+        """Generates comparative analysis of the articles with English summary"""
         comparisons = []
         topic_sets = [set(article["Topics"]) for article in self.articles]
         common_topics = set.intersection(*topic_sets) if topic_sets else set()
@@ -144,15 +144,14 @@ class NewsAnalyzer:
                 "Coverage Differences": comparisons,
                 "Topic Overlap": topic_overlap
             },
-            "Final Sentiment Analysis": f"{self.company_name}'s latest news coverage is mostly {max(self.sentiment_distribution, key=self.sentiment_distribution.get).lower()}."
+            "Final Sentiment Analysis": f"{self.company_name}'s latest news coverage is mostly {max(self.sentiment_distribution, key=self.sentiment_distribution.get).lower()}."  # Already in English
         }
     
     def _generate_audio(self, text):
-        """Converts text to Hindi speech using in-memory buffer"""
+        """Converts text to English speech using in-memory buffer"""
         try:
-            hindi_text = GoogleTranslator(source='auto', target='hi').translate(text)
             audio_buffer = BytesIO()
-            tts = gTTS(text=hindi_text, lang='hi')
+            tts = gTTS(text=text, lang='en') 
             tts.write_to_fp(audio_buffer)
             audio_buffer.seek(0)
             
@@ -162,3 +161,9 @@ class NewsAnalyzer:
         except Exception as e:
             print(f"Audio generation failed: {str(e)}")
             return None
+        
+        except Exception as e:
+            print(f"Audio generation failed: {str(e)}")
+            return None
+        
+    

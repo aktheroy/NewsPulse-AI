@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from Backend.utils import NewsAnalyzer
+from utils import NewsAnalyzer
 import uvicorn
 
 app = FastAPI()
