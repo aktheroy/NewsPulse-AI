@@ -12,7 +12,7 @@ A web application that analyzes news sentiment for companies and generates Hindi
 - 🗞️ News extraction from 10+ sources
 - 📊 Sentiment analysis (Positive/Negative/Neutral)
 - 🔍 Comparative news coverage analysis
-- 🔊 Hindi text-to-speech summary
+- 🔊 text-to-speech summary
 - 📈 Interactive visualizations
 - 🌐 API-driven architecture
 
@@ -26,25 +26,9 @@ git clone https://github.com/aktheroy/news-analyzer.git
 cd news-analyzer
 
 # Install backend dependencies
-pip install -r backend/requirements.txt
-
-# Install frontend dependencies
-pip install -r frontend/requirements.txt
+pip install -r requirements.txt
 
 ## Requirements
-
-### Backend (API)
-- FastAPI
-- Newspaper3k
-- Transformers
-- KeyBERT
-- gTTS
-- Deep Translator
-
-### Frontend
-- Streamlit
-- Plotly
-- Requests
 
 ## API Development
 
@@ -99,8 +83,8 @@ streamlit run app.py
 | News Extraction    | BeautifulSoup         |
 | Sentiment Analysis | FinBERT               |
 | Topic Extraction   | KeyBERT               |
-| Text-to-Speech     | gTTS                  |
-| Translation        | Google Translator     |
+| summarization      | *******               |
+| Text-to-Speech     | ****                  |
 
 ### Assumptions
 - English news articles only
