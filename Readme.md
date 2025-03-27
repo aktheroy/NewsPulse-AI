@@ -107,7 +107,7 @@ streamlit run app.py
 ## Submission
 
 - GitHub Repository: [news-analyzer](https://github.com/aktheroy/news-analyzer)
-- HuggingFace Space: [live-demo](https://huggingface.co/spaces/aktheroy/news-analyzer)
+- HuggingFace Space: [live-demo](https://huggingface.co/spaces/aktheroy/NewsPulse-AI)
 
 ## License
 
