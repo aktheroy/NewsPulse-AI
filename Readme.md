@@ -1,4 +1,4 @@
-# News Summarization and Text-to-Speech Application
+# NewsPulse AI
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-orange)
