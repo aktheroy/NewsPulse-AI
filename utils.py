@@ -6,7 +6,6 @@ from newspaper import Article, Config
 from transformers import BertTokenizer, BertForSequenceClassification, pipeline
 from keybert import KeyBERT
 from gtts import gTTS
-from deep_translator import GoogleTranslator
 from collections import defaultdict
 
 
